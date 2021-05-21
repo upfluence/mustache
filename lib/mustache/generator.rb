@@ -93,9 +93,23 @@ class Mustache
         str(exp[1])
       when :mustache
         send("on_#{exp[1]}", *exp[2..-1])
+      when :fallback
+        on_fallback(exp[1][0], exp[1][1])
       else
         raise "Unhandled exp: #{exp.first}"
       end
+    end
+
+    def on_fallback(primary, secondary)
+      ev(<<-compiled)
+      v = #{compile(primary)}
+
+      if v.nil? || v == false || v.respond_to?(:empty?) && v.empty?
+        v = #{compile(secondary)}
+      end
+
+      v.to_s
+      compiled
     end
 
     # Callback fired when the compiler finds a section token. We're

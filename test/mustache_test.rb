@@ -5,8 +5,10 @@ require 'json'
 class MustacheTest < Minitest::Test
   def test_instance_render
     klass = Class.new(Mustache)
-    klass.template = "Hi {{thing}}!"
+    klass.template = "Hi {{thing | thang}}!"
     assert_equal "Hi world!", klass.render(:thing => :world)
+    assert_equal "Hi warld!", klass.render(:thang => :warld)
+    assert_equal "Hi world!", klass.render(:thing => :world, :thang => :warld)
     assert_equal "Nice.", klass.render("{{compliment}}.", :compliment => "Nice")
     assert_equal <<-end_simple, Simple.new.render(:name => "yo", :in_ca => false)
 Hello yo
