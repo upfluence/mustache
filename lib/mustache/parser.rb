@@ -299,7 +299,32 @@ EOF
     # This function handles the cases where the scanned tag does not have
     # a type.
     def scan_tag_ content, fetch, padding, pre_match_position
-      @result << [:mustache, :etag, fetch, offset]
+      res = [:mustache, :etag, fetch, offset]
+      @scanner.skip(/\s+/)
+
+      # default value
+      if @ctag != '|' && @scanner.scan(/\|/)
+        @scanner.skip(/\s+/)
+        fallback = @scanner.scan(ALLOWED_CONTENT)
+        @scanner.skip(/\s+/)
+
+        lineno, column, _ = position
+
+        res = [
+          :fallback,
+          [
+            res,
+            [
+              :mustache,
+              :etag,
+              [:mustache, :fetch, fallback.split('.')],
+              [lineno, column]
+            ]
+          ]
+        ]
+      end
+
+      @result << res
     end
 
 

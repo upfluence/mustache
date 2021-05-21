@@ -22,7 +22,7 @@ class ParserTest < Minitest::Test
 <h1>{{header}}</h1>
 {{#items}}
 {{#first}}
-  <li><strong>{{name}}</strong></li>
+  <li><strong>{{name | foo}}</strong></li>
 {{/first}}
 {{#link}}
   <li><a href="{{url}}">{{name}}</a></li>
@@ -49,9 +49,15 @@ EOF
             [3, 7],
             [:multi,
               [:static, "  <li><strong>"],
-              [:mustache, :etag, [:mustache, :fetch, ["name"]], [4, 19]],
+              [
+                :fallback,
+                [
+                 [:mustache, :etag, [:mustache, :fetch, ["name"]], [4, 19]],
+                 [:mustache, :etag, [:mustache, :fetch, ["foo"]], [4, 25]]
+                ],
+              ],
               [:static, "</strong></li>\n"]],
-            %Q'  <li><strong>{{name}}</strong></li>\n',
+            %Q'  <li><strong>{{name | foo}}</strong></li>\n',
             %w[{{ }}]],
           [:mustache,
             :section,
@@ -65,7 +71,7 @@ EOF
               [:static, "</a></li>\n"]],
             %Q'  <li><a href="{{url}}">{{name}}</a></li>\n',
             %w[{{ }}]]],
-        %Q'{{#first}}\n  <li><strong>{{name}}</strong></li>\n{{/first}}\n{{#link}}\n  <li><a href="{{url}}">{{name}}</a></li>\n{{/link}}\n',
+        %Q'{{#first}}\n  <li><strong>{{name | foo}}</strong></li>\n{{/first}}\n{{#link}}\n  <li><a href="{{url}}">{{name}}</a></li>\n{{/link}}\n',
         %w[{{ }}]],
       [:static, "\n"],
       [:mustache,
