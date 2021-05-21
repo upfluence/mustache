@@ -105,7 +105,7 @@ class Mustache
       v = #{compile(primary)}
 
       if v.nil? || v == false || v.respond_to?(:empty?) && v.empty?
-        v = #{compile(secondary)}
+        v = #{secondary[0].eql?(:static) ? "'#{compile!(secondary)}'" : compile(secondary)}
       end
 
       v.to_s

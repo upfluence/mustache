@@ -16,6 +16,12 @@ You have just won $10000!
 end_simple
   end
 
+  def test_fallback_litteral
+    klass = Class.new(Mustache)
+    klass.template = "Hi {{thing | 'world'}}!"
+    assert_equal "Hi world!", klass.render
+  end
+
   def test_passenger
     assert_equal <<-end_passenger, Passenger.render
 <VirtualHost *>

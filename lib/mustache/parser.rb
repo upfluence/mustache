@@ -44,11 +44,16 @@ EOF
       end
     end
 
+    LITERAL_TOKENS = ['\'', '"'].freeze
     # The sigil types which are valid after an opening `{{`
     VALID_TYPES = [ '#', '^', '/', '=', '!', '<', '>', '&', '{' ].map(&:freeze)
 
     def self.valid_types
       @valid_types ||= Regexp.new(VALID_TYPES.map { |t| Regexp.escape(t) }.join('|') )
+    end
+
+    def self.literal_tokens
+      @literal_tokens ||= Regexp.new(LITERAL_TOKENS.map { |t| Regexp.escape(t) }.join('|') )
     end
 
     # Add a supported sigil type (with optional aliases) to the Parser.
@@ -305,28 +310,29 @@ EOF
       # default value
       if @ctag != '|' && @scanner.scan(/\|/)
         @scanner.skip(/\s+/)
-        fallback = @scanner.scan(ALLOWED_CONTENT)
+
+        literal = @scanner.scan(self.class.literal_tokens)
+        fallback = if literal
+          [:static, @scanner.scan_until(Regexp.new(literal))[0..-2]]
+        else
+          name = @scanner.scan(ALLOWED_CONTENT)
+          lineno, column, = position
+
+          [
+            :mustache,
+            :etag,
+            [:mustache, :fetch, name.split('.')],
+            [lineno, column]
+          ]
+        end
+
         @scanner.skip(/\s+/)
 
-        lineno, column, _ = position
-
-        res = [
-          :fallback,
-          [
-            res,
-            [
-              :mustache,
-              :etag,
-              [:mustache, :fetch, fallback.split('.')],
-              [lineno, column]
-            ]
-          ]
-        ]
+        res = [:fallback, [res, fallback]]
       end
 
       @result << res
     end
-
 
     def scan_tag_block content, fetch, padding, pre_match_position
       block = [:multi]
