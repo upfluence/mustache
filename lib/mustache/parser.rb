@@ -313,7 +313,18 @@ EOF
 
         literal = @scanner.scan(self.class.literal_tokens)
         fallback = if literal
-          [:static, @scanner.scan_until(Regexp.new(literal))[0..-2]]
+          fallback = ""
+          re = Regexp.new(literal)
+
+          loop do
+            scanned = @scanner.scan_until(re)
+            fallback << scanned[0..-2]
+            break unless fallback[-1].eql? '\\'
+
+            fallback[-1] = literal
+          end
+
+          [:static, fallback.gsub(/'/) { |x| '"' }]
         else
           name = @scanner.scan(ALLOWED_CONTENT)
           lineno, column, = position

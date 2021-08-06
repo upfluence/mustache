@@ -22,6 +22,24 @@ end_simple
     assert_equal "Hi world!", klass.render
   end
 
+  def test_fallback_litteral_double_quote
+    klass = Class.new(Mustache)
+    klass.template = "Hi {{thing | \"world\"}}!"
+    assert_equal "Hi world!", klass.render
+  end
+
+  def test_fallback_litteral_double_quote_nested
+    klass = Class.new(Mustache)
+    klass.template = 'Hi {{thing | "\"world\""}}!'
+    assert_equal 'Hi \\"world\\"!', klass.render
+  end
+
+  def test_fallback_litteral_crossquote
+    klass = Class.new(Mustache)
+    klass.template = 'Hi {{thing | "\'bizdd\'"}}!'
+    assert_equal 'Hi \\"bizdd\\"!', klass.render
+  end
+
   def test_passenger
     assert_equal <<-end_passenger, Passenger.render
 <VirtualHost *>
